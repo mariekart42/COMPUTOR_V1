@@ -8,11 +8,6 @@ public static class PolynomialHandler
         equation = equation.Replace(" ", "");
         if (string.IsNullOrWhiteSpace(equation))
             throw new Exception("Equation is invalid. Can't be empty.");
-        Console.WriteLine($"Equation: {equation}");
-
-        Dictionary<string, string> terms = GetTerms(equation);
-
-
 
         for (int i = 0; i < equation.Length; i++)
         {
@@ -20,8 +15,19 @@ public static class PolynomialHandler
                 throw new Exception($"Equation contains invalid symbol: \'{equation[i]}\'.");
             if (equation[i] == 'ˆ')
                 i = CheckExponent(equation, i+1);
-
         }
+
+        Dictionary<string, string> terms = GetTerms(equation);
+
+        Console.WriteLine("\nEquation after extracting terms: ");
+        foreach (var lol in terms)
+        {
+            if (lol.Key == "constant")
+                Console.Write($"{lol.Value} + ");
+            else
+                Console.Write($"{lol.Value}{lol.Key} + ");
+        }
+        Console.WriteLine("= 0\n-------------------");
 
         return equation;
     }
@@ -38,19 +44,7 @@ public static class PolynomialHandler
         ExtractTerms(equation, equalSign + 1, equation.Length, terms);
 
         OrderTermsToTheLeft(terms);
-        Console.Write("Term: ");
-        foreach (var term in terms)
-        {
-            Console.Write($"{term} ");
-        }
-        Console.WriteLine("\n-----------");
         SimplifyEquation(terms, something);
-
-        // foreach (var some in something)
-        // {
-        //     Console.WriteLine($"Key: {some.Key}|Value: {some.Value}");
-        // }
-
         return something;
     }
 
@@ -79,16 +73,6 @@ public static class PolynomialHandler
             if (termsDic[key] == "0" || termsDic[key] == "-0")
                 termsDic.Remove(key);
         }
-
-        Console.WriteLine("\nHEEEREEE:");
-        foreach (var lol in termsDic)
-        {
-            if (lol.Key == "constant")
-                Console.Write($"{lol.Value} + ");
-            else
-                Console.Write($"{lol.Value}{lol.Key} + ");
-        }
-        Console.WriteLine(" = 0\n-------------------");
     }
 
     private static string CalculateTerms(Dictionary<string, string> termsDic, string key, string term2, string replace)
@@ -204,7 +188,6 @@ public static class PolynomialHandler
         if (exponent == '(')
         {
             int bracketPosition = equation.IndexOf(')', i + 2);
-            Console.WriteLine($"indexOf ): {equation[bracketPosition]}");
             if (bracketPosition == -1)
                 throw new Exception($"Equation is invalid. Equation contains invalid exponent: {equation[i - 2]}ˆ{exponent}");
             int k = 0;
@@ -257,5 +240,6 @@ public static class PolynomialHandler
     public static void SolveEquation(string equation)
     {
         equation = FormatEquation(equation);
+
     }
 }
