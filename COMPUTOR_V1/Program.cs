@@ -62,6 +62,13 @@ try
 }
 catch (Exception e)
 {
-    Console.WriteLine(e);
-    throw;
+    ConsoleColor originalColor = ConsoleColor.Black;
+    Console.ForegroundColor = originalColor;
+    Console.WriteLine("\nError in program:");
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine("   "+e.Message);
+    Console.ForegroundColor = originalColor;
+    Console.WriteLine("\nStack Trace:");
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine(e.StackTrace+"\n");
 }
