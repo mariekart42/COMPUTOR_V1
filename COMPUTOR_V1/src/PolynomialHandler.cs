@@ -85,8 +85,6 @@ public static class PolynomialHandler
         }
 
         string term1 = termsDic[key];
-        Console.WriteLine($"Term1: {term1}");
-        Console.WriteLine($"Term1: {term2}");
         if (replace != "")
         {
             term1 = term1.Replace(replace, "");
@@ -248,87 +246,101 @@ public static class PolynomialHandler
 
     public static void PlotGraph(Dictionary<string, string> termsDic)
     {
-        // Define the polynomial function: y = ax^2 + bx + c
+        Func<double, double> polynomialFunction = GetPolynomialFunction(termsDic);
 
-        double x = 1.0;
-        double part1 = termsDic.ContainsKey("xˆ2") ? double.Parse(termsDic["xˆ2"]) : 0;
-        double part2 = termsDic.ContainsKey("x") ? double.Parse(termsDic["x"]) : 0;
-        double part3 = termsDic.ContainsKey("constant") ? double.Parse(termsDic["constant"]) : 0;
-        Func<double, double> polynomialFunction = null;
-
-        if (termsDic.ContainsKey("xˆ2"))
-        {
-            if (termsDic.ContainsKey("x"))
-            {
-                if (termsDic.ContainsKey("constant"))
-                    polynomialFunction = x => part1 * Math.Pow(x, 2) + part2 * x + part3;
-                else
-                    polynomialFunction = x => part1 * Math.Pow(x, 2) + part2 * x;
-            }
-            else
-            {
-                if (termsDic.ContainsKey("constant"))
-                    polynomialFunction = x => part1 * Math.Pow(x, 2) + part3;
-                else
-                    polynomialFunction = x => part1 * Math.Pow(x, 2);
-            }
-        }
-        else
-        {
-            if (termsDic.ContainsKey("x"))
-            {
-                if (termsDic.ContainsKey("constant"))
-                    polynomialFunction = x => part2 * x + part3;
-                else
-                    polynomialFunction = x => part2 * x;
-            }
-            else
-            {
-                if (termsDic.ContainsKey("constant"))
-                    polynomialFunction = x => part3;
-                else
-                    polynomialFunction = x => 0;
-            }
-        }
-
-        // Generate data points for the polynomial function
         int pointCount = 150;
         double[] xs = new double[pointCount];
         double[] ys = new double[pointCount];
 
         int scale = 100;
-
-        double xStart = -scale;
-        double xEnd = scale;
-        double step = (xEnd - xStart) / (pointCount - 1);
+        double step = (scale - (-scale)) / (pointCount - 1);
 
         for (int i = 0; i < pointCount; i++)
         {
-            xs[i] = xStart + i * step;
+            xs[i] = -scale + i * step;
             ys[i] = polynomialFunction(xs[i]);
         }
 
-        // Create a new plot
         var plt = new ScottPlot.Plot();
-
         plt.Axes.SetLimits(-scale, scale, -scale, scale);
-        // make the data area cover the full figure
         plt.Layout.Frameless();
-
-        // set the data area background so we can observe its size
-        // plt.DataBackground.Color = Colors.WhiteSmoke;
-
         plt.Add.Line(-scale, 0, scale, 0);
         plt.Add.Line(0, -scale, 0, scale);
-
-        // Plot the polynomial function
         plt.Add.Scatter(xs, ys);
-
-        // Add labels and title
         plt.Title("Polynomial Function Plot");
-
-        // Save the plot as an image
         plt.SavePng("polynomial_plot.png", 600, 400);
+    }
 
+    private static Func<double, double> GetPolynomialFunction(Dictionary<string, string> termsDic)
+    {
+        double x = 1.0;
+        double part1 = termsDic.ContainsKey("xˆ2") ? double.Parse(termsDic["xˆ2"]) : 0;
+        double part2 = termsDic.ContainsKey("x") ? double.Parse(termsDic["x"]) : 0;
+        double part3 = termsDic.ContainsKey("constant") ? double.Parse(termsDic["constant"]) : 0;
+
+        if (termsDic.ContainsKey("xˆ2"))
+            if (termsDic.ContainsKey("x"))
+                if (termsDic.ContainsKey("constant"))
+                    return x => part1 * Math.Pow(x, 2) + part2 * x + part3;
+                else
+                    return x => part1 * Math.Pow(x, 2) + part2 * x;
+            else
+                if (termsDic.ContainsKey("constant"))
+                    return x => part1 * Math.Pow(x, 2) + part3;
+                else
+                    return x => part1 * Math.Pow(x, 2);
+        else
+            if (termsDic.ContainsKey("x"))
+                if (termsDic.ContainsKey("constant"))
+                    return x => part2 * x + part3;
+                else
+                    return x => part2 * x;
+            else
+                if (termsDic.ContainsKey("constant"))
+                    return x => part3;
+                else
+                    return x => 0;
+    }
+
+    public static void PrintReducedForm(Dictionary<string, string> termsDic)
+    {
+        int totalItems = termsDic.Count;
+        int currentIndex = 0;
+        string print = "";
+
+        var keys = termsDic.Keys.ToList();
+        Console.Write("Reduced Form: ");
+
+        for (int i = 0; i < keys.Count; i++)
+        {
+            string key = keys[i];
+            string value = termsDic[key];
+
+            // Handle sign for the current term
+            if (value.StartsWith('-'))
+                print += $"- {value.Substring(1)} ";
+            else
+            {
+                if (i != 0) // Avoid leading "+"
+                    print += "+ ";
+                print += value + " ";
+            }
+            if (key != "constant")
+                print += $"* {key} ";
+        }
+        print += "= 0";
+        Console.WriteLine(print);
+    }
+
+    public static void PrintDegree(Dictionary<string, string> termsDic)
+    {
+        int degree;
+        if (termsDic.ContainsKey("xˆ2"))
+            degree = 2;
+        else if (termsDic.ContainsKey("x"))
+            degree = 1;
+        else
+            degree = 0;
+        Console.WriteLine($"Polynomial degree: {degree}");
     }
 }

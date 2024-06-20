@@ -13,18 +13,8 @@ try
     // PolynomialHandler.SolveEquation(args[0]);
     Dictionary<string, string> termsDic = PolynomialHandler.FormatEquation(args[0]);
     PolynomialHandler.PlotGraph(termsDic);
-
-    Console.WriteLine("\nEquation after extracting terms: ");
-    foreach (var lol in termsDic)
-    {
-        if (lol.Key == "constant")
-            Console.Write($"{lol.Value} + ");
-        else
-            Console.Write($"{lol.Value}{lol.Key} + ");
-    }
-    Console.WriteLine("= 0\n-------------------");
-
-
+    PolynomialHandler.PrintReducedForm(termsDic);
+    PolynomialHandler.PrintDegree(termsDic);
 
     Console.WriteLine("me calculati :)");
 
