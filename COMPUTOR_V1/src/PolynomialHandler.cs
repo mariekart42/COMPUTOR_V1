@@ -3,9 +3,15 @@ using System.Collections.Generic;
 
 public static class PolynomialHandler
 {
-    private static string FormatEquation(string equation)
+    public static Dictionary<string, string> FormatEquation(string equation)
     {
         equation = equation.Replace(" ", "");
+        CheckEquationSyntax(equation);
+        return GetTerms(equation);
+    }
+
+    private static void CheckEquationSyntax(string equation)
+    {
         if (string.IsNullOrWhiteSpace(equation))
             throw new Exception("Equation is invalid. Can't be empty.");
 
@@ -16,20 +22,6 @@ public static class PolynomialHandler
             if (equation[i] == 'ˆ')
                 i = CheckExponent(equation, i+1);
         }
-
-        Dictionary<string, string> terms = GetTerms(equation);
-
-        Console.WriteLine("\nEquation after extracting terms: ");
-        foreach (var lol in terms)
-        {
-            if (lol.Key == "constant")
-                Console.Write($"{lol.Value} + ");
-            else
-                Console.Write($"{lol.Value}{lol.Key} + ");
-        }
-        Console.WriteLine("= 0\n-------------------");
-
-        return equation;
     }
 
     private static Dictionary<string, string> GetTerms(string equation)
@@ -169,6 +161,7 @@ public static class PolynomialHandler
 
             if (!string.IsNullOrEmpty(term))
             {
+                term = term.Replace("*", "");
                 terms.Add(term);
                 termIndex++;
             }
@@ -239,7 +232,103 @@ public static class PolynomialHandler
 
     public static void SolveEquation(string equation)
     {
-        equation = FormatEquation(equation);
+        Dictionary<string, string> termsDic = FormatEquation(equation);
+
+        Console.WriteLine("\nEquation after extracting terms: ");
+        foreach (var lol in termsDic)
+        {
+            if (lol.Key == "constant")
+                Console.Write($"{lol.Value} + ");
+            else
+                Console.Write($"{lol.Value}{lol.Key} + ");
+        }
+        Console.WriteLine("= 0\n-------------------");
+
+    }
+
+    public static void PlotGraph(Dictionary<string, string> termsDic)
+    {
+        // Define the polynomial function: y = ax^2 + bx + c
+
+        double x = 1.0;
+        double part1 = termsDic.ContainsKey("xˆ2") ? double.Parse(termsDic["xˆ2"]) : 0;
+        double part2 = termsDic.ContainsKey("x") ? double.Parse(termsDic["x"]) : 0;
+        double part3 = termsDic.ContainsKey("constant") ? double.Parse(termsDic["constant"]) : 0;
+        Func<double, double> polynomialFunction = null;
+
+        if (termsDic.ContainsKey("xˆ2"))
+        {
+            if (termsDic.ContainsKey("x"))
+            {
+                if (termsDic.ContainsKey("constant"))
+                    polynomialFunction = x => part1 * Math.Pow(x, 2) + part2 * x + part3;
+                else
+                    polynomialFunction = x => part1 * Math.Pow(x, 2) + part2 * x;
+            }
+            else
+            {
+                if (termsDic.ContainsKey("constant"))
+                    polynomialFunction = x => part1 * Math.Pow(x, 2) + part3;
+                else
+                    polynomialFunction = x => part1 * Math.Pow(x, 2);
+            }
+        }
+        else
+        {
+            if (termsDic.ContainsKey("x"))
+            {
+                if (termsDic.ContainsKey("constant"))
+                    polynomialFunction = x => part2 * x + part3;
+                else
+                    polynomialFunction = x => part2 * x;
+            }
+            else
+            {
+                if (termsDic.ContainsKey("constant"))
+                    polynomialFunction = x => part3;
+                else
+                    polynomialFunction = x => 0;
+            }
+        }
+
+        // Generate data points for the polynomial function
+        int pointCount = 150;
+        double[] xs = new double[pointCount];
+        double[] ys = new double[pointCount];
+
+        int scale = 100;
+
+        double xStart = -scale;
+        double xEnd = scale;
+        double step = (xEnd - xStart) / (pointCount - 1);
+
+        for (int i = 0; i < pointCount; i++)
+        {
+            xs[i] = xStart + i * step;
+            ys[i] = polynomialFunction(xs[i]);
+        }
+
+        // Create a new plot
+        var plt = new ScottPlot.Plot();
+
+        plt.Axes.SetLimits(-scale, scale, -scale, scale);
+        // make the data area cover the full figure
+        plt.Layout.Frameless();
+
+        // set the data area background so we can observe its size
+        // plt.DataBackground.Color = Colors.WhiteSmoke;
+
+        plt.Add.Line(-scale, 0, scale, 0);
+        plt.Add.Line(0, -scale, 0, scale);
+
+        // Plot the polynomial function
+        plt.Add.Scatter(xs, ys);
+
+        // Add labels and title
+        plt.Title("Polynomial Function Plot");
+
+        // Save the plot as an image
+        plt.SavePng("polynomial_plot.png", 600, 400);
 
     }
 }
