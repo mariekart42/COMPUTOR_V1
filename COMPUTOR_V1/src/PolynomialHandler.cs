@@ -228,19 +228,45 @@ public static class PolynomialHandler
         return true;
     }
 
-    public static void SolveEquation(string equation)
+    public static void SolveEquation(Dictionary<string, string> termsDic)
     {
-        Dictionary<string, string> termsDic = FormatEquation(equation);
-
-        Console.WriteLine("\nEquation after extracting terms: ");
-        foreach (var lol in termsDic)
+        if (termsDic.ContainsKey("xˆ2"))
+            SolveQuadraticEquation(termsDic);
+        else if (termsDic.ContainsKey("x"))
+            SolveLinearEquation(termsDic);
+        else
         {
-            if (lol.Key == "constant")
-                Console.Write($"{lol.Value} + ");
-            else
-                Console.Write($"{lol.Value}{lol.Key} + ");
+
         }
-        Console.WriteLine("= 0\n-------------------");
+    }
+
+    private static void SolveQuadraticEquation(Dictionary<string, string> termsDic)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void SolveLinearEquation(Dictionary<string, string> termsDic)
+    {
+        // 10x + 4 = 0
+        // 10x = -4
+        double rightSite = 0;
+
+        // get x value
+        // if constant exists:
+            // if constant starts with - put positive constant to the right
+            // else put negative contant on the right
+        if (termsDic.ContainsKey("constant"))
+        {
+            if (termsDic["constant"].StartsWith('-'))
+                rightSite = double.Parse(termsDic["constant"].Substring(1));
+            else if (termsDic["constant"].StartsWith('+'))
+                rightSite = double.Parse("-" + termsDic["constant"].Substring(1));
+            else
+                rightSite = double.Parse("-" + termsDic["constant"]);
+        }
+        // divide through value of x
+        double x = rightSite / double.Parse(termsDic["x"]);
+        Console.WriteLine($"found x in linear equation: {x}");
 
     }
 
@@ -304,8 +330,6 @@ public static class PolynomialHandler
 
     public static void PrintReducedForm(Dictionary<string, string> termsDic)
     {
-        int totalItems = termsDic.Count;
-        int currentIndex = 0;
         string print = "";
 
         var keys = termsDic.Keys.ToList();
@@ -316,7 +340,6 @@ public static class PolynomialHandler
             string key = keys[i];
             string value = termsDic[key];
 
-            // Handle sign for the current term
             if (value.StartsWith('-'))
                 print += $"- {value.Substring(1)} ";
             else

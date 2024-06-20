@@ -10,17 +10,13 @@ try
     if (args.Length != 1)
         throw new Exception("wrong amount of arguments");
 
-    // PolynomialHandler.SolveEquation(args[0]);
     Dictionary<string, string> termsDic = PolynomialHandler.FormatEquation(args[0]);
     PolynomialHandler.PlotGraph(termsDic);
     PolynomialHandler.PrintReducedForm(termsDic);
     PolynomialHandler.PrintDegree(termsDic);
+    PolynomialHandler.SolveEquation(termsDic);
 
     Console.WriteLine("me calculati :)");
-
-
-
-
 
 }
 catch (Exception e)
