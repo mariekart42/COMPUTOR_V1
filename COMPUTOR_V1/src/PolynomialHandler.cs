@@ -26,18 +26,17 @@ public static class PolynomialHandler
 
     private static Dictionary<string, string> GetTerms(string equation)
     {
-        Dictionary<string, string> something = new Dictionary<string, string>();
-        int equalSign = GetEqualSignPosition(equation);
-
+        Dictionary<string, string> termsDic = new Dictionary<string, string>();
         List<string> terms = new List<string>();
+        int equalSign = GetEqualSignPosition(equation);
 
         ExtractTerms(equation, 0, equalSign, terms);
         terms.Add("=");
         ExtractTerms(equation, equalSign + 1, equation.Length, terms);
 
         OrderTermsToTheLeft(terms);
-        SimplifyEquation(terms, something);
-        return something;
+        SimplifyEquation(terms, termsDic);
+        return termsDic;
     }
 
     private static void SimplifyEquation(List<string> terms, Dictionary<string, string> termsDic)
@@ -69,10 +68,8 @@ public static class PolynomialHandler
 
     private static string CalculateTerms(Dictionary<string, string> termsDic, string key, string term2, string replace)
     {
-        //termsDic, key, term, replace
         if (!termsDic.ContainsKey(key))
         {
-            // Console.WriteLine($"new entry[{key}]: {term2}");
             if (replace == "")
                 return term2;
             else
@@ -98,10 +95,9 @@ public static class PolynomialHandler
             term2 = "1";
         try
         {
-            double term1_double = double.Parse(term1);
-            double term2_double = double.Parse(term2);
-            double result = term1_double + term2_double;
-            // Console.WriteLine($"calculating type[{key}] {term1_double} + {term2_double} = {result}");
+            double tmp1 = double.Parse(term1);
+            double tmp2 = double.Parse(term2);
+            double result = tmp1 + tmp2;
             return result + "";
         }
         catch (Exception e)
@@ -126,11 +122,7 @@ public static class PolynomialHandler
     {
         int equalSignIndex = terms.IndexOf("=");
         for (int k = equalSignIndex + 1; k < terms.Count; k++)
-        {
             terms[k] = NegateTerm(terms[k]);
-            // Console.WriteLine($"right side: {terms[k]}");
-        }
-
         terms.RemoveAt(equalSignIndex); // Remove the '='
     }
 
@@ -144,16 +136,15 @@ public static class PolynomialHandler
             return "-" + term; // Prepend '-' if no sign
     }
 
-    private static List<string> ExtractTerms(string equation, int start, int end, List<string> terms)
+    private static void ExtractTerms(string equation, int start, int end, List<string> terms)
     {
         int i = start;
-        string term = null;
-        int termIndex = 1;
         while (i < end)
         {
             int nextSign = equation.IndexOfAny(new char[] { '+', '-' }, i + 1, end - i - 1);
-
             int termLength = (nextSign == -1 ? end : nextSign) - i;
+            string term = "";
+
             if (equation[i] == '+')
                 term = equation.Substring(i+1, termLength-1);
             else
@@ -163,13 +154,11 @@ public static class PolynomialHandler
             {
                 term = term.Replace("*", "");
                 terms.Add(term);
-                termIndex++;
             }
             if (nextSign == -1)
                 break;
             i = nextSign;
         }
-        return terms;
     }
 
     private static int CheckExponent(string equation, int i)
@@ -199,12 +188,12 @@ public static class PolynomialHandler
                     continue;
                 }
                 throw new Exception(
-                    $"1 Equation is invalid. Equation contains invalid exponent: {equation[i - 2]}ˆ{equation.Substring(i, bracketPosition-i+1)}");
+                    $"Equation is invalid. Equation contains invalid exponent: {equation[i - 2]}ˆ{equation.Substring(i, bracketPosition-i+1)}");
             }
             if (number == null || number == "0" || number == "1" || number == "2")
                 return i;
             throw new Exception(
-                    $"2 Equation is invalid. Equation contains invalid exponent: {equation[i - 2]}ˆ{equation.Substring(i, bracketPosition-i+1)}");
+                    $"Equation is invalid. Equation contains invalid exponent: {equation[i - 2]}ˆ{equation.Substring(i, bracketPosition-i+1)}");
         }
 
         if (exponent == '0' || exponent == '1' || exponent == '2')
@@ -238,9 +227,9 @@ public static class PolynomialHandler
             SolveLinearEquation(termsDic);
         else
             if (termsDic.ContainsKey("constant"))
-                Console.WriteLine($"The polynomial has no solution.");
+                Utils.PrintInColor("The polynomial has no solution.", ConsoleColor.Red);
             else
-                Console.WriteLine("The polynomial is an identity, true for any value of x.");
+                Utils.PrintInColor("The polynomial is an identity, true for any value of x.", ConsoleColor.Green);
     }
 
     private static void SolveQuadraticEquation(Dictionary<string, string> termsDic)
@@ -250,14 +239,8 @@ public static class PolynomialHandler
 
     private static void SolveLinearEquation(Dictionary<string, string> termsDic)
     {
-        // 10x + 4 = 0
-        // 10x = -4
         double rightSite = 0;
 
-        // get x value
-        // if constant exists:
-            // if constant starts with - put positive constant to the right
-            // else put negative contant on the right
         if (termsDic.ContainsKey("constant"))
         {
             if (termsDic["constant"].StartsWith('-'))
@@ -267,76 +250,16 @@ public static class PolynomialHandler
             else
                 rightSite = double.Parse("-" + termsDic["constant"]);
         }
-        // divide through value of x
         double x = rightSite / double.Parse(termsDic["x"]);
-        Console.WriteLine($"The solution is: {x}");
-    }
-
-    public static void PlotGraph(Dictionary<string, string> termsDic)
-    {
-        Func<double, double> polynomialFunction = GetPolynomialFunction(termsDic);
-
-        int pointCount = 150;
-        double[] xs = new double[pointCount];
-        double[] ys = new double[pointCount];
-
-        int scale = 100;
-        double step = (scale - (-scale)) / (pointCount - 1);
-
-        for (int i = 0; i < pointCount; i++)
-        {
-            xs[i] = -scale + i * step;
-            ys[i] = polynomialFunction(xs[i]);
-        }
-
-        var plt = new ScottPlot.Plot();
-        plt.Axes.SetLimits(-scale, scale, -scale, scale);
-        plt.Layout.Frameless();
-        plt.Add.Line(-scale, 0, scale, 0);
-        plt.Add.Line(0, -scale, 0, scale);
-        plt.Add.Scatter(xs, ys);
-        plt.Title("Polynomial Function Plot");
-        plt.SavePng("polynomial_plot.png", 600, 400);
-    }
-
-    private static Func<double, double> GetPolynomialFunction(Dictionary<string, string> termsDic)
-    {
-        double x = 1.0;
-        double part1 = termsDic.ContainsKey("xˆ2") ? double.Parse(termsDic["xˆ2"]) : 0;
-        double part2 = termsDic.ContainsKey("x") ? double.Parse(termsDic["x"]) : 0;
-        double part3 = termsDic.ContainsKey("constant") ? double.Parse(termsDic["constant"]) : 0;
-
-        if (termsDic.ContainsKey("xˆ2"))
-            if (termsDic.ContainsKey("x"))
-                if (termsDic.ContainsKey("constant"))
-                    return x => part1 * Math.Pow(x, 2) + part2 * x + part3;
-                else
-                    return x => part1 * Math.Pow(x, 2) + part2 * x;
-            else
-                if (termsDic.ContainsKey("constant"))
-                    return x => part1 * Math.Pow(x, 2) + part3;
-                else
-                    return x => part1 * Math.Pow(x, 2);
-        else
-            if (termsDic.ContainsKey("x"))
-                if (termsDic.ContainsKey("constant"))
-                    return x => part2 * x + part3;
-                else
-                    return x => part2 * x;
-            else
-                if (termsDic.ContainsKey("constant"))
-                    return x => part3;
-                else
-                    return x => 0;
+        Utils.PrintInColor($"The solution is: {x}", ConsoleColor.DarkGreen);
     }
 
     public static void PrintReducedForm(Dictionary<string, string> termsDic)
     {
         string print = "";
-
         var keys = termsDic.Keys.ToList();
-        Console.Write("Reduced Form: ");
 
+        Console.Write("Reduced Form: ");
         for (int i = 0; i < keys.Count; i++)
         {
             string key = keys[i];
@@ -353,14 +276,11 @@ public static class PolynomialHandler
             if (key != "constant")
                 print += $"* {key} ";
         }
-
         if (string.IsNullOrEmpty(print))
             print = "0 = 0";
         else
             print += "= 0";
-        Console.ForegroundColor = ConsoleColor.Blue;
         Console.WriteLine(print);
-        Console.ForegroundColor = ConsoleColor.Black;
     }
 
     public static void PrintDegree(Dictionary<string, string> termsDic)
@@ -372,6 +292,6 @@ public static class PolynomialHandler
             degree = 1;
         else
             degree = 0;
-        Console.WriteLine($"Polynomial degree: {degree}");
+        Utils.PrintInColor($"Polynomial degree: {degree}\n", ConsoleColor.DarkBlue);
     }
 }

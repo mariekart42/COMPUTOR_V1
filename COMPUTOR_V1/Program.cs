@@ -1,9 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-
-using COMPUTOR_V1;
-using ScottPlot.WinForms;
-using ScottPlot;
-Console.WriteLine("Helljo, World!");
+﻿using COMPUTOR_V1;
 
 try
 {
@@ -11,23 +6,17 @@ try
         throw new Exception("wrong amount of arguments");
 
     Dictionary<string, string> termsDic = PolynomialHandler.FormatEquation(args[0]);
-    PolynomialHandler.PlotGraph(termsDic);
+    Utils.PlotGraph(termsDic);
     PolynomialHandler.PrintReducedForm(termsDic);
     PolynomialHandler.PrintDegree(termsDic);
     PolynomialHandler.SolveEquation(termsDic);
-
-    Console.WriteLine("me calculati :)");
-
 }
 catch (Exception e)
 {
-    ConsoleColor originalColor = ConsoleColor.Black;
-    Console.ForegroundColor = originalColor;
     Console.WriteLine("\nError in program:");
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine("   "+e.Message);
-    Console.ForegroundColor = originalColor;
+    Utils.PrintInColor("   "+e.Message+ "\n", ConsoleColor.Red);
     Console.WriteLine("\nStack Trace:");
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine(e.StackTrace+"\n");
+    Utils.PrintInColor(e.StackTrace+"\n\n", ConsoleColor.Red);
 }
+
+
