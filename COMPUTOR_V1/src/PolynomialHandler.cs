@@ -117,6 +117,8 @@ public static class PolynomialHandler
         int equalSign = equation.IndexOf('=');
         if (equalSign == -1)
             throw new Exception("Equation is invalid. There is no \'=\' sign.");
+        if (equalSign == 0)
+            throw new Exception("Equation is invalid. Left side of equation cant be empty.");
         return equalSign;
     }
 
@@ -235,9 +237,10 @@ public static class PolynomialHandler
         else if (termsDic.ContainsKey("x"))
             SolveLinearEquation(termsDic);
         else
-        {
-
-        }
+            if (termsDic.ContainsKey("constant"))
+                Console.WriteLine($"The polynomial has no solution.");
+            else
+                Console.WriteLine("The polynomial is an identity, true for any value of x.");
     }
 
     private static void SolveQuadraticEquation(Dictionary<string, string> termsDic)
@@ -266,8 +269,7 @@ public static class PolynomialHandler
         }
         // divide through value of x
         double x = rightSite / double.Parse(termsDic["x"]);
-        Console.WriteLine($"found x in linear equation: {x}");
-
+        Console.WriteLine($"The solution is: {x}");
     }
 
     public static void PlotGraph(Dictionary<string, string> termsDic)
@@ -351,8 +353,14 @@ public static class PolynomialHandler
             if (key != "constant")
                 print += $"* {key} ";
         }
-        print += "= 0";
+
+        if (string.IsNullOrEmpty(print))
+            print = "0 = 0";
+        else
+            print += "= 0";
+        Console.ForegroundColor = ConsoleColor.Blue;
         Console.WriteLine(print);
+        Console.ForegroundColor = ConsoleColor.Black;
     }
 
     public static void PrintDegree(Dictionary<string, string> termsDic)
