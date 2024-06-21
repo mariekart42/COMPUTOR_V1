@@ -17,7 +17,7 @@ public static class Utils
         double[] xs = new double[pointCount];
         double[] ys = new double[pointCount];
 
-        int scale = 10;
+        int scale = 100;
 
         double xStart = -scale;
         double xEnd = scale;

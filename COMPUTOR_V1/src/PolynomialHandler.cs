@@ -19,7 +19,7 @@ public static class PolynomialHandler
         {
             if (InvalidSymbol(equation[i]))
                 throw new Exception($"Equation contains invalid symbol: \'{equation[i]}\'.");
-            if (equation[i] == 'ˆ')
+            if (equation[i] == 'ˆ' && i > 0 && equation[i-1] == 'x')
                 i = CheckExponent(equation, i+1);
         }
     }
@@ -153,12 +153,52 @@ public static class PolynomialHandler
             if (!string.IsNullOrEmpty(term))
             {
                 term = term.Replace("*", "");
+                if (term.Contains('ˆ'))
+                {
+                    if (!(term.Contains("xˆ") && equation.Count(c => c == '=') == 1))
+                        term = ResolveExponentExpressions(term);
+                }
                 terms.Add(term);
             }
             if (nextSign == -1)
                 break;
             i = nextSign;
         }
+    }
+
+    private static string ResolveExponentExpressions(string term)
+    {
+        string resolved_term = term;
+        for (int i = 0; i < term.Length; i++)
+        {
+            int found = term.IndexOf('ˆ', i);
+            if (found == -1)
+                break;
+            if (found == 0)
+                throw new Exception("Equation is invalid. Contains wrong syntax around this symbol: \'ˆ\'.");
+            if (term[found-1] == 'x')
+                continue;
+            // 4x + 11.11ˆ2
+            char exponent = '1';
+            if (term.Length > found + 1)
+            {
+                exponent = term[found + 1];
+            }
+
+            string number_before = "";
+            int number_start = 0;
+            for (int k = found - 1; k >= 0; k--)
+            {
+                if (char.IsDigit(term[k]) || term[k] == ',' || term[k] == '-')
+                    continue;
+            }
+            string number = term.Substring(number_start, found - number_start);
+            double result = Math.Pow(double.Parse(number), (int)char.GetNumericValue(exponent));
+            resolved_term = term.Replace(number + "ˆ" + exponent, result.ToString());
+
+        }
+
+        return resolved_term;
     }
 
     private static int CheckExponent(string equation, int i)
@@ -208,7 +248,7 @@ public static class PolynomialHandler
 
     private static bool InvalidSymbol(char c)
     {
-        if (char.IsDigit(c) || c == 'π')
+        if (char.IsDigit(c) || c == 'π' || c == ',')
             return false;
         if (c == '-' || c == '+' || c == '/' || c == '*')
             return false;
@@ -238,25 +278,35 @@ public static class PolynomialHandler
         double b = termsDic.ContainsKey("x") ? double.Parse(termsDic["x"]) : 0;
         double c = termsDic.ContainsKey("constant") ? double.Parse(termsDic["constant"]) : 0;
 
-        CalculateDiscriminant(a, b, c);
-    }
+        // Console.WriteLine($"calc: {b}ˆ2 - 4 * {a} * {c}");
 
-    /* if Δ > 0: The graph intersects the x-axis at two distinct points.
-     * if Δ = 0: The graph touches the x-axis at exactly one point.
-     * if Δ < 0: The graph does not intersect the x-axis.
-     */
-    private static void CalculateDiscriminant(double a, double b, double c)
-    {
-        //Δ = bˆ2 −4ac
         double discriminant = Math.Pow(b, 2) - 4 * a * c;
-        if (discriminant < 0)
-            Utils.PrintInColor($"Since Δ = {discriminant} < 0; there are two complex roots, means the graph does not intersect the x-axis.\n", ConsoleColor.DarkRed);
+        if (discriminant > 0)
+        { // can determine x1 and x2
+            Utils.PrintInColor($"Since the discriminant Δ = {discriminant} > 0; there are two distinct real roots, means the graph intersects the x-axis at two distinct points:\n", ConsoleColor.DarkRed);
+
+            // x1 = (-b+√∆)/2a
+            double x1 = (-b + Math.Sqrt(discriminant)) / (2 * a);
+            // Console.WriteLine($"calc: (-{b} + {discriminant}ˆ2) / (2 * {a})");
+            // x2 = (-b-√∆)/2a
+            double x2 = (-b - Math.Sqrt(discriminant)) / (2 * a);
+            // Console.WriteLine($"calc: (-{b} - {discriminant}ˆ2) / (2 * {a})");
+            Utils.PrintInColor($"x1 = {x1}\n", ConsoleColor.Green);
+            Utils.PrintInColor($"x2 = {x2}\n", ConsoleColor.Green);
+
+        }
         else if (discriminant == 0)
-            Utils.PrintInColor($"Since Δ = 0; there is one real root (a repeated root), means the graph touches the x-axis at exactly one point.\n", ConsoleColor.DarkRed);
+        { // can determine x
+            Utils.PrintInColor($"Since the discriminant Δ = 0; there is one real root (a repeated root), means the graph touches the x-axis at exactly one point:\n", ConsoleColor.DarkRed);
+            // (-b)/2a
+            double x = (-b) / (2 * a);
+            Utils.PrintInColor($"x = {x}\n", ConsoleColor.Green);
+        }
         else
-            Utils.PrintInColor($"Since Δ = {discriminant} > 0; there are two distinct real roots, means the graph intersects the x-axis at two distinct points.\n", ConsoleColor.DarkRed);
-
-
+        {
+            Utils.PrintInColor($"Since the discriminant Δ = {discriminant} < 0; there are two complex roots, means the graph does not intersect the x-axis.\n", ConsoleColor.DarkRed);
+            Utils.PrintInColor("I am not able to calculate complex functions. Me dumb, bye.", ConsoleColor.Red);
+        }
     }
 
     private static void SolveLinearEquation(Dictionary<string, string> termsDic)
