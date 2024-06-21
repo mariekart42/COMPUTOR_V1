@@ -234,7 +234,29 @@ public static class PolynomialHandler
 
     private static void SolveQuadraticEquation(Dictionary<string, string> termsDic)
     {
-        throw new NotImplementedException();
+        double a = double.Parse(termsDic["xˆ2"]);
+        double b = termsDic.ContainsKey("x") ? double.Parse(termsDic["x"]) : 0;
+        double c = termsDic.ContainsKey("constant") ? double.Parse(termsDic["constant"]) : 0;
+
+        CalculateDiscriminant(a, b, c);
+    }
+
+    /* if Δ > 0: The graph intersects the x-axis at two distinct points.
+     * if Δ = 0: The graph touches the x-axis at exactly one point.
+     * if Δ < 0: The graph does not intersect the x-axis.
+     */
+    private static void CalculateDiscriminant(double a, double b, double c)
+    {
+        //Δ = bˆ2 −4ac
+        double discriminant = Math.Pow(b, 2) - 4 * a * c;
+        if (discriminant < 0)
+            Utils.PrintInColor($"Since Δ = {discriminant} < 0; there are two complex roots, means the graph does not intersect the x-axis.\n", ConsoleColor.DarkRed);
+        else if (discriminant == 0)
+            Utils.PrintInColor($"Since Δ = 0; there is one real root (a repeated root), means the graph touches the x-axis at exactly one point.\n", ConsoleColor.DarkRed);
+        else
+            Utils.PrintInColor($"Since Δ = {discriminant} > 0; there are two distinct real roots, means the graph intersects the x-axis at two distinct points.\n", ConsoleColor.DarkRed);
+
+
     }
 
     private static void SolveLinearEquation(Dictionary<string, string> termsDic)

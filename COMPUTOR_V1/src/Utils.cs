@@ -13,12 +13,15 @@ public static class Utils
     {
         Func<double, double> polynomialFunction = GetPolynomialFunction(termsDic);
 
-        int pointCount = 150;
+        int pointCount = 1000;
         double[] xs = new double[pointCount];
         double[] ys = new double[pointCount];
 
-        int scale = 100;
-        double step = (scale - (-scale)) / (pointCount - 1);
+        int scale = 10;
+
+        double xStart = -scale;
+        double xEnd = scale;
+        double step = (xEnd - xStart) / (pointCount - 1);
 
         for (int i = 0; i < pointCount; i++)
         {
